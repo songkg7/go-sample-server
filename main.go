@@ -6,11 +6,11 @@ import (
 )
 
 func main() {
-	r := gin.Default()
-	r.GET("/ping", func(context *gin.Context) {
+	router := gin.Default()
+	router.GET("/ping", func(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{
 			"message": "pong",
 		})
 	})
-	r.Run()
+	router.Run()
 }
