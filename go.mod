@@ -2,12 +2,12 @@ module go-practice
 
 go 1.17
 
-require (
-	github.com/stretchr/testify v1.7.4
-)
+require github.com/stretchr/testify v1.7.4
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
+	github.com/cockroachdb/cockroach-go/v2 v2.2.14 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.8.1 // indirect

@@ -1,9 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+	"os"
 )
 
 func ping() func(context *gin.Context) {
@@ -34,8 +38,42 @@ func create() func(context *gin.Context) {
 
 func main() {
 	router := gin.Default()
+	db, err := initStore()
+	if err != nil {
+		log.Fatalf("failed to initialise the store: %s", err)
+	}
+	defer db.Close()
+
 	router.GET("/ping", ping())
 	router.GET("/person", getPerson())
 	router.POST("/person/create", create())
 	router.Run()
+}
+
+func initStore() (*sql.DB, error) {
+	pgConnString := fmt.Sprintf("host=%s dbname=%s user=%s password=%s sslmode=disable",
+		os.Getenv("PGHOST"),
+		os.Getenv("PGPORT"),
+		os.Getenv("PGDATABASE"),
+		os.Getenv("PGPASSWORD"),
+	)
+
+	var (
+		db  *sql.DB
+		err error
+	)
+	openDB := func() error {
+		db, err = sql.Open("postgres", pgConnString)
+		return err
+	}
+
+	err = backoff.Retry(openDB, backoff.NewExponentialBackOff())
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS message (value STRING PRIMARY KEY)"); err != nil {
+		return nil, err
+	}
+	return db, nil
 }
