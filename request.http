@@ -1,0 +1,7 @@
+POST http://localhost:8080/person/create
+Content-Type: application/json
+
+{
+  "user": "haril2",
+  "age": 21
+}
