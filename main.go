@@ -28,7 +28,7 @@ func create() func(context *gin.Context) {
 			fmt.Println(err.Error())
 			return
 		}
-		fmt.Println(req.Name, req.Age)
+		context.JSON(http.StatusCreated, req)
 	}
 }
 
