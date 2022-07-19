@@ -6,6 +6,7 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/cockroachdb/cockroach-go/v2/crdb"
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 	"os"
@@ -85,12 +86,10 @@ func initStore() (*sql.DB, error) {
 		db, err = sql.Open("postgres", pgConnString)
 		return err
 	}
-
 	err = backoff.Retry(openDB, backoff.NewExponentialBackOff())
 	if err != nil {
 		return nil, err
 	}
-
 	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS message (value STRING PRIMARY KEY)"); err != nil {
 		return nil, err
 	}
