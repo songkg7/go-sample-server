@@ -22,26 +22,8 @@ func main() {
 	router.GET("/ping", ping())
 	router.GET("/person", getPerson())
 	router.POST("/person", create(db))
+
 	router.Run()
-}
-
-func ping() func(context *gin.Context) {
-	return func(context *gin.Context) {
-		context.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	}
-}
-
-func getPerson() func(context *gin.Context) {
-	return func(context *gin.Context) {
-		person := Person{Name: "haril", Age: 28}
-		context.JSON(http.StatusOK, person)
-	}
-}
-
-type Message struct {
-	Value string `json:"value"`
 }
 
 func create(db *sql.DB) func(context *gin.Context) {
@@ -67,11 +49,31 @@ func create(db *sql.DB) func(context *gin.Context) {
 	}
 }
 
+func ping() func(context *gin.Context) {
+	return func(context *gin.Context) {
+		context.JSON(http.StatusOK, gin.H{
+			"message": "pong",
+		})
+	}
+}
+
+func getPerson() func(context *gin.Context) {
+	return func(context *gin.Context) {
+		person := Person{Name: "haril", Age: 28}
+		context.JSON(http.StatusOK, person)
+	}
+}
+
+type Message struct {
+	Value string `json:"value"`
+}
+
 func initStore() (*sql.DB, error) {
-	pgConnString := fmt.Sprintf("host=%s dbname=%s user=%s password=%s sslmode=disable",
+	pgConnString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
 		os.Getenv("PGHOST"),
 		os.Getenv("PGPORT"),
 		os.Getenv("PGDATABASE"),
+		os.Getenv("PGUSER"),
 		os.Getenv("PGPASSWORD"),
 	)
 
