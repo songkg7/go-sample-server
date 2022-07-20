@@ -21,8 +21,8 @@ func main() {
 	defer db.Close()
 
 	router.GET("/ping", ping())
-	router.GET("/person", getPerson())
-	router.POST("/person", create(db))
+	router.GET("/message", read(db))
+	router.POST("/message", create(db))
 
 	router.Run()
 }
@@ -30,10 +30,8 @@ func main() {
 func create(db *sql.DB) func(context *gin.Context) {
 	return func(context *gin.Context) {
 		m := &Message{}
-		var req Person
-		if err := context.BindJSON(&req); err != nil {
-			fmt.Println(err.Error())
-			return
+		if err := context.Bind(&m); err != nil {
+			context.JSON(http.StatusInternalServerError, err)
 		}
 		crdb.ExecuteTx(context, db, nil, func(tx *sql.Tx) error {
 			_, err := tx.Exec(
@@ -46,7 +44,7 @@ func create(db *sql.DB) func(context *gin.Context) {
 			}
 			return nil
 		})
-		context.JSON(http.StatusCreated, req)
+		context.JSON(http.StatusCreated, m)
 	}
 }
 
@@ -58,11 +56,31 @@ func ping() func(context *gin.Context) {
 	}
 }
 
-func getPerson() func(context *gin.Context) {
+func read(db *sql.DB) func(context *gin.Context) {
 	return func(context *gin.Context) {
-		person := Person{Name: "haril", Age: 28}
-		context.JSON(http.StatusOK, person)
+		r, err := countRecords(db)
+		if err != nil {
+			context.HTML(http.StatusInternalServerError, "errorTest", err.Error())
+		}
+		context.JSON(http.StatusOK, r)
 	}
+}
+
+func countRecords(db *sql.DB) (int, error) {
+	rows, err := db.Query("SELECT count(*) FROM message")
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+
+	count := 0
+	for rows.Next() {
+		if err := rows.Scan(&count); err != nil {
+			return 0, err
+		}
+		rows.Close()
+	}
+	return count, nil
 }
 
 type Message struct {
