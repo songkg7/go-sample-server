@@ -62,7 +62,8 @@ func read(db *sql.DB) func(context *gin.Context) {
 		if err != nil {
 			context.HTML(http.StatusInternalServerError, "errorTest", err.Error())
 		}
-		context.JSON(http.StatusOK, r)
+		m := &ResponseMessage{Count: r, Message: "Hello, Docker!"}
+		context.JSON(http.StatusOK, m)
 	}
 }
 
@@ -85,6 +86,11 @@ func countRecords(db *sql.DB) (int, error) {
 
 type Message struct {
 	Value string `json:"value"`
+}
+
+type ResponseMessage struct {
+	Message string `json:"message"`
+	Count   int    `json:"count"`
 }
 
 func initStore() (*sql.DB, error) {
