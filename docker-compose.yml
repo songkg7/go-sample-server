@@ -17,7 +17,7 @@ services:
       - PGPASSWORD=${PGPASSWORD:?database password not set}
       - PGHOST=${PGHOST:-db}
       - PGPORT=${PGPORT:-26257}
-      - PGDATABASE=${PGDATABASE:-mydb}
+      - PGDATABASE=${PGDATABASE:-postgres}
       - GIN_MODE=${GIN_MODE:-debug}
     deploy:
       restart_policy:
