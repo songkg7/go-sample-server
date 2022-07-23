@@ -1,51 +1,51 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"github.com/cenkalti/backoff/v4"
-	"github.com/cockroachdb/cockroach-go/v2/crdb"
 	"github.com/gin-gonic/gin"
-	_ "github.com/lib/pq"
-	"log"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"net/http"
-	"os"
 )
+
+type Product struct {
+	gorm.Model
+	Code  string
+	Price uint
+}
 
 func main() {
 	router := gin.Default()
-	db, err := initStore()
+	db, err := gorm.Open(postgres.Open("test.db"), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("failed to initialise the store: %s", err)
+		panic("DB 연결에 실패하였습니다.")
 	}
-	defer db.Close()
+
+	// 테이블 자동생성
+	db.AutoMigrate(&Product{})
+
+	// 생성
+	db.Create(&Product{
+		Code:  "D42",
+		Price: 100,
+	})
+
+	// 읽기
+	var product Product
+	db.First(&product, 1)                 // primary key 기준으로 product 찾기
+	db.First(&product, "code = ?", "D42") // code 가 D42 인 product 찾기
+
+	// 수정 - product 의 price 를 200 으로
+	db.Model(&product).Update("Price", 200)
+
+	// 수정 - 여러개의 필드를 수정하기
+	db.Model(&product).Updates(Product{Price: 200, Code: "F42"})
+	db.Model(&product).Updates(map[string]interface{}{"Price": 200, "Code": "F42"})
+
+	// 삭제 - product 삭제하기
+	db.Delete("&product", 1)
 
 	router.GET("/ping", ping())
-	router.GET("/message", read(db))
-	router.POST("/message", create(db))
-
 	router.Run()
-}
-
-func create(db *sql.DB) func(context *gin.Context) {
-	return func(context *gin.Context) {
-		m := &Message{}
-		if err := context.Bind(&m); err != nil {
-			context.JSON(http.StatusInternalServerError, err)
-		}
-		crdb.ExecuteTx(context, db, nil, func(tx *sql.Tx) error {
-			_, err := tx.Exec(
-				"INSERT INTO message (value) VALUES ($1) ON CONFLICT (value) DO UPDATE SET value = excluded.value",
-				m.Value,
-			)
-			if err != nil {
-				//return context.JSON(http.StatusInternalServerError, err)
-				return context.Error(err)
-			}
-			return nil
-		})
-		context.JSON(http.StatusCreated, m)
-	}
 }
 
 func ping() func(context *gin.Context) {
@@ -54,68 +54,4 @@ func ping() func(context *gin.Context) {
 			"message": "pong",
 		})
 	}
-}
-
-func read(db *sql.DB) func(context *gin.Context) {
-	return func(context *gin.Context) {
-		r, err := countRecords(db)
-		if err != nil {
-			context.HTML(http.StatusInternalServerError, "errorTest", err.Error())
-		}
-		m := &ResponseMessage{Count: r, Message: "Hello, Docker!"}
-		context.JSON(http.StatusOK, m)
-	}
-}
-
-func countRecords(db *sql.DB) (int, error) {
-	rows, err := db.Query("SELECT count(*) FROM message")
-	if err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	count := 0
-	for rows.Next() {
-		if err := rows.Scan(&count); err != nil {
-			return 0, err
-		}
-		rows.Close()
-	}
-	return count, nil
-}
-
-type Message struct {
-	Value string `json:"value"`
-}
-
-type ResponseMessage struct {
-	Message string `json:"message"`
-	Count   int    `json:"count"`
-}
-
-func initStore() (*sql.DB, error) {
-	pgConnString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
-		os.Getenv("PGHOST"),
-		os.Getenv("PGPORT"),
-		os.Getenv("PGDATABASE"),
-		os.Getenv("PGUSER"),
-		os.Getenv("PGPASSWORD"),
-	)
-
-	var (
-		db  *sql.DB
-		err error
-	)
-	openDB := func() error {
-		db, err = sql.Open("postgres", pgConnString)
-		return err
-	}
-	err = backoff.Retry(openDB, backoff.NewExponentialBackOff())
-	if err != nil {
-		return nil, err
-	}
-	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS message (value STRING PRIMARY KEY)"); err != nil {
-		return nil, err
-	}
-	return db, nil
 }
