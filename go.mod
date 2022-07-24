@@ -4,10 +4,11 @@ go 1.17
 
 require (
 	github.com/cenkalti/backoff/v4 v4.1.3
-	github.com/cockroachdb/cockroach-go/v2 v2.2.14
 	github.com/gin-gonic/gin v1.8.1
 	github.com/lib/pq v1.10.6
 	github.com/stretchr/testify v1.7.4
+	gorm.io/driver/postgres v1.3.8
+	gorm.io/gorm v1.23.8
 )
 
 require (
@@ -33,7 +34,9 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/net v0.0.0-20220708220712-1185a9018129 // indirect
@@ -42,6 +45,4 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/driver/postgres v1.3.8 // indirect
-	gorm.io/gorm v1.23.8 // indirect
 )

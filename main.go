@@ -3,17 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"go-practice/content"
+	"go-practice/content/dblayer"
+	"go-practice/content/models"
 	"net/http"
 	"os"
 )
-
-type Product struct {
-	gorm.Model
-	Code  string `json:"code"`
-	Price uint   `json:"price"`
-}
 
 func main() {
 	router := gin.Default()
@@ -24,24 +19,18 @@ func main() {
 		os.Getenv("PGUSER"),
 		os.Getenv("PGPASSWORD"),
 	)
-	db, err := gorm.Open(postgres.Open(pgConnString), &gorm.Config{})
-	if err != nil {
-		panic("DB 연결에 실패하였습니다.")
-	}
+
+	db := dblayer.InitDatabase(pgConnString)
 
 	// 테이블 자동생성
-	db.AutoMigrate(&Product{})
+	db.AutoMigrate(&models.Product{})
 
-	var product Product
+	var product models.Product
 
-	router.GET("/:id", func(context *gin.Context) {
-		// 읽기
-		db.First(&product, 1)                 // primary key 기준으로 product 찾기
-		db.First(&product, "code = ?", "D42") // code 가 D42 인 product 찾기
-	})
+	router.GET("/:id", content.GetValue(db, product))
 	router.POST("/create", func(context *gin.Context) {
 		// 생성
-		result := db.Create(&Product{
+		result := db.Create(models.Product{
 			Code:  "D42",
 			Price: 100,
 		})
