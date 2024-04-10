@@ -8,7 +8,7 @@ import (
 func main() {
 	router := gin.Default()
 	router.GET("/ping", ping())
-    router.GET("/long-ping", longPing())
+    router.GET("/dummy", longPing())
 	router.Run()
 }
 
@@ -24,7 +24,7 @@ func longPing() func(context *gin.Context) {
     return func(context *gin.Context) {
         context.JSON(http.StatusOK, gin.H{
             "abbreviation": "CDT",
-            "client_ip": "58.234.77.75",
+            "client_ip": "192.166.0.1",
             "datetime": "2024-04-09T21:33:36.049571-05:00",
             "day_of_week": 2,
             "day_of_year": 100,
