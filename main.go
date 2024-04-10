@@ -1,37 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"go-practice/content/dblayer"
-	"go-practice/content/models"
-	"go-practice/content/route"
 	"net/http"
-	"os"
 )
 
 func main() {
 	router := gin.Default()
-	pgConnString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
-		os.Getenv("PGHOST"),
-		os.Getenv("PGPORT"),
-		os.Getenv("PGDATABASE"),
-		os.Getenv("PGUSER"),
-		os.Getenv("PGPASSWORD"),
-	)
-
-	db := dblayer.InitDatabase(pgConnString)
-
-	// 테이블 자동생성
-	db.AutoMigrate(&models.Product{})
-
-	var product models.Product
-
-	router.GET("/:id", route.GetValue(db, product))
-	router.POST("/create", route.AddValue(db))
-	router.PATCH("/:id", route.UpdateValue(db, product))
-	router.DELETE("/delete/:id", route.DeleteValue(db))
 	router.GET("/ping", ping())
+    router.GET("/long-ping", longPing())
 	router.Run()
 }
 
@@ -42,3 +19,26 @@ func ping() func(context *gin.Context) {
 		})
 	}
 }
+
+func longPing() func(context *gin.Context) {
+    return func(context *gin.Context) {
+        context.JSON(http.StatusOK, gin.H{
+            "abbreviation": "CDT",
+            "client_ip": "58.234.77.75",
+            "datetime": "2024-04-09T21:33:36.049571-05:00",
+            "day_of_week": 2,
+            "day_of_year": 100,
+            "dst": true,
+            "dst_from": "2024-03-10T08:00:00+00:00",
+            "dst_offset": 3600,
+            "dst_until": "2024-11-03T07:00:00+00:00",
+            "raw_offset": -21600,
+            "timezone": "America/Chicago",
+            "unixtime": 1712716416,
+            "utc_datetime": "2024-04-10T02:33:36.049571+00:00",
+            "utc_offset": "-05:00",
+            "week_number": 15,
+        })
+    }
+}
+
